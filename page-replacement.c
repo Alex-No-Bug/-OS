@@ -59,7 +59,7 @@ void print_Access_Series()
 {
     printf("Access Series:\n");
     for (int index = 0; index < Total_instruction; index++)
-        printf("%d ", Access_series[index]);
+        printf("%d ", Access_Series[index]);
     printf("\n");
 }
 
@@ -69,50 +69,53 @@ void print_M_Frame()
     for (int i = 0; i < frame_num; i++)
     {
         if (M_Frame[i].flag == IN)
-            printf("%d ", M_Frame[i]);
+            printf("%d ", M_Frame[i].page_no);
     }
-    print("\n");
+    printf("\n");
 }
 //输出缺页次数和缺页率
-void print_disaffect(int dis)
+void print_disaffect(float dis)
 {
-    float disaffect_rate=dis/Total_instruction;
-    print("disaffect=%d\ndisafffect_rate=%f",disaffect,disaffect_rate);
+    float disaffect_rate=(float)dis/Total_instruction;
+    printf("disaffect=%d\ndisafffect_rate=%f",disaffect,disaffect_rate);
 }
 //LRU命中函数 页表M_Frame0优先级最高 [0]-[index-1]一次向后移动一位
 void hit(int index)
 {
-    int temp; //用于交换
-    temp = M_frame[index];
-    for (int i = 0; i <= (index - 1); i++)
-    {
-        M_frame[i + 1] = M_frame[i];
-    }
-    M_Frame[0] = temp;
-}
 
+    int temp; //用于交换
+    temp = M_Frame[index].page_no;
+    for (int i = index; i >0; i--)
+    {
+        M_Frame[i].page_no = M_Frame[i-1].page_no;
+    }
+    M_Frame[0].page_no = temp;
+
+    
+
+}
 //LRU 未命中函数 调入
 void miss_call_in(int page)
 {
     if (loc < frame_num) //此时的内存未满
     {
-        for (int i = 0; i <loc; i++)
+        for (int i=loc; i>0; i--)
            {
                M_Frame[i].flag=IN;
-               M_Frame[i+1]=M_Frame[i];
+               M_Frame[i].page_no=M_Frame[i-1].page_no;//下移动
            }
-            M_Frame[loc].flag = IN;
-                
-        M_Frame[0] = page;//移动完赋值
+        M_Frame[0].flag = IN;      
+        M_Frame[0].page_no = page;//移动完赋值
         loc++;
     }
     else
     {
-        for (int i = 0; i <=(frame_num-2); i++)
-            M_Frame[i + 1] = M_Frame[i];
-        M_Frame[0] = page;
+        for (int i = frame_num-1; i>0; i--)
+            M_Frame[i].page_no= M_Frame[i-1].page_no;
+        M_Frame[0].page_no = page;
     }
 }
+
 int main()
 {
     for (int i = 0; i < Total_instruction; i++) //随机产生访问页面序列
@@ -125,21 +128,26 @@ int main()
         init();
         for (int cur = 0; cur < Total_instruction; cur++)
         {
-            for (int index = 0; index < frame_num; index++) //遍历内存 M_Frame
+              is_hit=MISS;
+            int index;
+            for ( index = 0; index < frame_num; index++) //遍历内存 M_Frame
             {
                 if (M_Frame[index].flag == IN && M_Frame[index].page_no == Access_Series[cur]) //在内存 且 页号命中
-                    is_hit = HIT;   
+                    {
+                        is_hit = HIT;   
+                        break;
+                    }
             }
             if (is_hit == HIT)
             {
-                hit();
-                print("hit   ");
+                hit(index);
+                printf("hit   ");
                 print_M_Frame();
             }
             else //未命中
             {
                 miss_call_in(Access_Series[cur]);
-                print("miss  ");
+                printf("miss  ");
                 print_M_Frame();
                 disaffect++;
             }
