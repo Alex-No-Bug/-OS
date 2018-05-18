@@ -1,24 +1,10 @@
-/*每个子进程应能反映出页面置换的过程，
-并统计页面置换算法的命中或缺页情况。
-设缺页的次数为diseffect。
-总的页面访问次数为total_instruction
-缺页率 = disaffect/total_instruction 
-命中率 = 1- disaffect/total_instruction 
-用一个结构数组M_Frame[]记录为进程分配的内存页面的使用情况。
-在M_Frame[]中还可记载各页面进入内存或被访问的先后顺序（如可使M_Frame[0]总是最先进入或最久未被访问的页面）。 
-   struct one_frame { 
-          int page_no; 
-          char flag; 
-   }; 
-   struct one_frame M_Frame[frame_num];//这里frame_num是给一个进程分配的最大的内存页面数 
-*/
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <string.h>
 #include <wait.h>
 #include <stdlib.h>
-
+#include <time.h>
 int loc_1;                    //栈底指针
 #define frame_num 3         //主存大小
 #define Total_instruction 6 //总的额访问页数
@@ -145,13 +131,14 @@ void FIFO(int page_n)
 
 int main()
 {
-    for (int i = 0; i < Total_instruction; i++) //随机产生访问页面序列
-        Access_Series[i] = rand() % Total_instruction;
+     srand(time(NULL));
+    for (int i = 0; i < Total_instruction; i++) //随机产生访问页面序列 
+       Access_Series[i] = rand() % Total_instruction;
     pid_t id1 = fork();
-    if (id1 == 0) //子进程1 LRU int Access_Series[Total_instruction]6;   struct one_frame M_Frame[frame_num];
+    if (id1 == 0) //子进程1 LRU int Access_Series[Total_instruction]
     {
 
-        printf("run LRU:\n");
+        printf("\nrun LRU:\n");
         init();
         print_Access_Series();
         for (int cur = 0; cur < Total_instruction; cur++)
@@ -193,7 +180,6 @@ int main()
             printf("run FIFO:\n");
             init();
             print_Access_Series();
-
         for (int cur = 0; cur < Total_instruction; cur++)
         {
             is_hit=MISS;
